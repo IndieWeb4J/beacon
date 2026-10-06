@@ -5,8 +5,8 @@ import dev.jacobandersen.beacon.webmention.service.WebmentionService
 import dev.jacobandersen.content.client.ChangedPostsPage
 import dev.jacobandersen.content.client.ContentReadClient
 import dev.jacobandersen.content.client.PostDto
-import dev.jacobandersen.mf24j.Mf2Object
-import dev.jacobandersen.mf24j.Mf2Value
+import dev.jacobandersen.microformats2.Mf2Object
+import dev.jacobandersen.microformats2.Mf2Value
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock

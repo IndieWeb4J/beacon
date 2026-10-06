@@ -7,7 +7,7 @@ import dev.jacobandersen.beacon.event.WebmentionEventType
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmention
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionAnalysis
 import dev.jacobandersen.beacon.webmention.http.WebmentionSourceFetcher
-import dev.jacobandersen.mf24j.Mf2Parser
+import dev.jacobandersen.microformats2.Mf2Parser
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 import java.util.UUID

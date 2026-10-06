@@ -1,7 +1,7 @@
 package dev.jacobandersen.beacon.config
 
-import dev.jacobandersen.mf24j.Mf2Parser
-import dev.jacobandersen.mf24j.Mf2ParserImpl
+import dev.jacobandersen.microformats2.Mf2Parser
+import dev.jacobandersen.microformats2.Mf2ParserImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 

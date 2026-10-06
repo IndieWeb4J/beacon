@@ -8,12 +8,12 @@ import dev.jacobandersen.beacon.WebmentionInteraction.REPLY
 import dev.jacobandersen.beacon.WebmentionInteraction.REPOST
 import dev.jacobandersen.beacon.WebmentionInteraction.RSVP
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionAnalysis
-import dev.jacobandersen.mf24j.Mf2Object
-import dev.jacobandersen.mf24j.Mf2ParseResult
-import dev.jacobandersen.mf24j.Mf2Value
-import dev.jacobandersen.mf24j.firstText
-import dev.jacobandersen.mf24j.htmls
-import dev.jacobandersen.mf24j.texts
+import dev.jacobandersen.microformats2.Mf2Object
+import dev.jacobandersen.microformats2.Mf2ParseResult
+import dev.jacobandersen.microformats2.Mf2Value
+import dev.jacobandersen.microformats2.firstText
+import dev.jacobandersen.microformats2.htmls
+import dev.jacobandersen.microformats2.texts
 
 /**
  * Analyzes a parsed source document for webmention purposes: picks the primary

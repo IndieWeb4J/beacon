@@ -2,7 +2,7 @@ package dev.jacobandersen.beacon.webmention.domain
 
 import dev.jacobandersen.beacon.WebmentionInteraction
 import dev.jacobandersen.beacon.webmention.entity.ReceivedWebmentionEntity
-import dev.jacobandersen.mf24j.Mf2Object
+import dev.jacobandersen.microformats2.Mf2Object
 import java.time.Instant
 import java.util.UUID
 

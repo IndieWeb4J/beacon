@@ -1,9 +1,9 @@
 package dev.jacobandersen.beacon.util
 
-import dev.jacobandersen.mf24j.Mf2Object
-import dev.jacobandersen.mf24j.Mf2Value
-import dev.jacobandersen.mf24j.htmlOrNull
-import dev.jacobandersen.mf24j.plainTextOrNull
+import dev.jacobandersen.microformats2.Mf2Object
+import dev.jacobandersen.microformats2.Mf2Value
+import dev.jacobandersen.microformats2.htmlOrNull
+import dev.jacobandersen.microformats2.plainTextOrNull
 
 /**
  * Extracts the URLs a microformat references as text, so webmentions can be
