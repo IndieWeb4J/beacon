@@ -20,16 +20,16 @@ subprojects {
             name = "BastionGitHubPackages"
             url = uri("https://maven.pkg.github.com/jacobsandersen/bastion")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
-                password = System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)
+                username = System.getenv("PACKAGES_USER") ?: System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
+                password = System.getenv("PACKAGES_TOKEN") ?: System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)
             }
         }
         maven {
             name = "Mf24jGitHubPackages"
             url = uri("https://maven.pkg.github.com/jacobandersen/mf24j")
             credentials {
-                username = System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
-                password = System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)
+                username = System.getenv("PACKAGES_USER") ?: System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
+                password = System.getenv("PACKAGES_TOKEN") ?: System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)
             }
         }
     }

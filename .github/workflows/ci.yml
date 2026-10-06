@@ -17,8 +17,8 @@ jobs:
     env:
       # content-client is published from the private Bastion repo, so reads need a
       # token with read:packages (the default GITHUB_TOKEN is scoped to this repo).
-      GITHUB_ACTOR: jacobsandersen
-      GITHUB_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
+      PACKAGES_USER: jacobsandersen
+      PACKAGES_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
