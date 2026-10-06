@@ -37,9 +37,8 @@ class NatsWebmentionEventPublisher(
     }
 
     private fun ensureStream() {
-        try {
-            management.getStreamInfo(streamName)
-        } catch (_: Exception) {
+        val existing = runCatching { management.getStreamInfo(streamName) }.getOrNull()
+        if (existing == null) {
             logger.info { "Creating JetStream stream $streamName capturing $subjectFilter" }
             management.addStream(
                 StreamConfiguration
@@ -48,6 +47,12 @@ class NatsWebmentionEventPublisher(
                     .subjects(subjectFilter)
                     .storageType(StorageType.File)
                     .build(),
+            )
+        } else if (subjectFilter !in existing.configuration.subjects) {
+            // The DISTRIBUTION stream is shared with Conduit; extend, never narrow.
+            logger.info { "Extending JetStream stream $streamName to capture $subjectFilter" }
+            management.updateStream(
+                StreamConfiguration.builder(existing.configuration).addSubjects(subjectFilter).build(),
             )
         }
     }
