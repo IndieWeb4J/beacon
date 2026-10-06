@@ -1,0 +1,19 @@
+package dev.jacobandersen.beacon.webmention.domain
+
+import dev.jacobandersen.beacon.WebmentionInteraction
+import dev.jacobandersen.mf24j.Mf2Object
+
+/**
+ * The result of analyzing a received webmention's source document: the
+ * detected interaction type plus the normalized author and content extracted
+ * from its primary microformats object.
+ */
+data class ReceivedWebmentionAnalysis(
+    val interaction: WebmentionInteraction,
+    val primary: Mf2Object?,
+    val authorName: String? = null,
+    val authorUrl: String? = null,
+    val authorPhoto: String? = null,
+    val contentText: List<String> = emptyList(),
+    val contentHtml: List<String> = emptyList(),
+)

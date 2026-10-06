@@ -1,0 +1,58 @@
+beacon:
+  content:
+    base-url: ${BEACON_CONTENT_BASE_URL:https://example.com}
+    path-pattern: ${BEACON_CONTENT_PATH_PATTERN:{year}/{month}/{day}/{slug}}
+  webmention:
+    retry-interval-minutes: ${BEACON_WEBMENTION_RETRY_INTERVAL_MINUTES:30}
+    max-attempts: ${BEACON_WEBMENTION_MAX_ATTEMPTS:5}
+    backoff-base-seconds: ${BEACON_WEBMENTION_BACKOFF_BASE_SECONDS:1800}
+    backoff-max-seconds: ${BEACON_WEBMENTION_BACKOFF_MAX_SECONDS:86400}
+    connect-timeout-seconds: ${BEACON_WEBMENTION_CONNECT_TIMEOUT_SECONDS:10}
+    read-timeout-seconds: ${BEACON_WEBMENTION_READ_TIMEOUT_SECONDS:10}
+  events:
+    nats:
+      enabled: ${BEACON_EVENTS_NATS_ENABLED:false}
+      url: ${BEACON_EVENTS_NATS_URL:nats://localhost:4222}
+      content-stream: ${BEACON_EVENTS_NATS_CONTENT_STREAM:CONTENT}
+      content-subject: ${BEACON_EVENTS_NATS_CONTENT_SUBJECT:content.>}
+      content-consumer: ${BEACON_EVENTS_NATS_CONTENT_CONSUMER:beacon-content}
+      distribution-stream: ${BEACON_EVENTS_NATS_DISTRIBUTION_STREAM:DISTRIBUTION}
+      distribution-subject: ${BEACON_EVENTS_NATS_DISTRIBUTION_SUBJECT:webmention.>}
+
+# The content service (Bastion) read API, used to confirm a webmention target
+# is a currently-public post.
+content:
+  client:
+    base-url: ${BASTION_URL:}
+    service-token: ${BASTION_SERVICE_TOKEN:}
+
+spring:
+  application:
+    name: beacon
+  datasource:
+    url: jdbc:postgresql://${SPRING_PG_HOST}:${SPRING_PG_PORT:5432}/${SPRING_PG_DB}
+    username: ${SPRING_PG_USERNAME}
+    password: ${SPRING_PG_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    baseline-version: 0
+    baseline-on-migrate: true
+
+jobrunr:
+  background-job-server:
+    enabled: ${JOBRUNR_BACKGROUND_JOB_SERVER:true}
+  dashboard:
+    enabled: ${JOBRUNR_DASHBOARD_ENABLE:true}
+  database:
+    type: sql
+
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:info}
