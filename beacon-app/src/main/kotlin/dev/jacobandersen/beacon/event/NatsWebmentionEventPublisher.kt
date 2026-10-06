@@ -20,6 +20,7 @@ class NatsWebmentionEventPublisher(
     private val streamName: String,
     private val subjectFilter: String,
     private val objectMapper: ObjectMapper,
+    private val replicas: Int = 1,
 ) : WebmentionEventPublisher {
     private val jetStream: JetStream = connection.jetStream()
     private val management: JetStreamManagement = connection.jetStreamManagement()
@@ -46,6 +47,7 @@ class NatsWebmentionEventPublisher(
                     .name(streamName)
                     .subjects(subjectFilter)
                     .storageType(StorageType.File)
+                    .replicas(replicas)
                     .build(),
             )
         } else if (subjectFilter !in existing.configuration.subjects) {

@@ -34,6 +34,7 @@ class NatsEventConfig {
             streamName = properties.nats.distributionStream,
             subjectFilter = properties.nats.distributionSubject,
             objectMapper = objectMapper,
+            replicas = properties.nats.replicas,
         )
 
     @Bean
