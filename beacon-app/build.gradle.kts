@@ -16,7 +16,7 @@ java {
 }
 
 extra["mf24jVersion"] = "0.1.0"
-extra["contentClientVersion"] = "0.1.0"
+extra["contentClientVersion"] = "1.3.33"
 
 dependencies {
     implementation(project(":beacon-client"))
