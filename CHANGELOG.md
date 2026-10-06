@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/jacobsandersen/beacon/compare/v0.2.0...v0.3.0) (2026-10-06)
+
+
+### Features
+
+* configurable JetStream stream replicas ([a738625](https://github.com/jacobsandersen/beacon/commit/a738625ef21e3a13c8081fc7f709a8da208dfadf))
+* make JetStream stream replicas configurable ([1c7ee47](https://github.com/jacobsandersen/beacon/commit/1c7ee4790e321f3519d9d027c13e4fd40675871d))
+
+
+### Tests
+
+* cover the reconciliation sweep ([12fe610](https://github.com/jacobsandersen/beacon/commit/12fe6105387aaddaf08fbc68fc093174fd1d1a21))
+* cover the reconciliation sweep ([01ad392](https://github.com/jacobsandersen/beacon/commit/01ad3928de6ed82858bb756bffec24fd62e86975))
+
 ## [0.2.0](https://github.com/jacobsandersen/beacon/compare/v0.1.0...v0.2.0) (2026-10-06)
 
 
