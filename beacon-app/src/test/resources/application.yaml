@@ -1,0 +1,19 @@
+beacon:
+  content:
+    base-url: https://example.com
+    path-pattern: "{year}/{month}/{day}/{slug}"
+  events:
+    nats:
+      enabled: false
+
+content:
+  client:
+    base-url: http://localhost:8080
+
+jobrunr:
+  background-job-server:
+    enabled: false
+  dashboard:
+    enabled: false
+  database:
+    type: sql
