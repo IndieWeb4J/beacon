@@ -13,6 +13,7 @@ beacon:
     nats:
       enabled: ${BEACON_EVENTS_NATS_ENABLED:false}
       url: ${BEACON_EVENTS_NATS_URL:nats://localhost:4222}
+      replicas: ${BEACON_EVENTS_NATS_REPLICAS:1}
       content-stream: ${BEACON_EVENTS_NATS_CONTENT_STREAM:CONTENT}
       content-subject: ${BEACON_EVENTS_NATS_CONTENT_SUBJECT:content.>}
       content-consumer: ${BEACON_EVENTS_NATS_CONTENT_CONSUMER:beacon-content}

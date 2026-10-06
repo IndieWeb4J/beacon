@@ -83,6 +83,7 @@ class ContentEventConsumer(
                     .name(stream)
                     .subjects(subject)
                     .storageType(StorageType.File)
+                    .replicas(properties.nats.replicas)
                     .build(),
             )
         }
