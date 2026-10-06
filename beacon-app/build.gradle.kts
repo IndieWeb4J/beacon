@@ -15,7 +15,7 @@ java {
     }
 }
 
-extra["microformats2Version"] = "0.1.1"
+extra["microformats2Version"] = "0.1.2"
 extra["contentClientVersion"] = "1.3.33"
 
 dependencies {
