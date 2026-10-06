@@ -10,7 +10,7 @@ Multi-module, mirroring Sigil:
 
 - `beacon-client/` - published library (`dev.jacobandersen:beacon-client`): the
   producer-owned event schemas (`dev.jacobandersen.beacon.event.WebmentionEvent`,
-  `WebmentionSubjects`, stream `DISTRIBUTION`, subjects `webmention.verified|changed|removed`)
+  `WebmentionSubjects`, stream `WEBMENTION`, subjects `webmention.verified|changed|removed`)
   and API types (`dev.jacobandersen.beacon.api`), plus the shared
   `WebmentionInteraction` enum. Consumers (Bastion's projector) depend on it.
 - `beacon-app/` - the Spring Boot server (`bootJar` -> `beacon.jar`).

@@ -21,7 +21,7 @@ data class WebmentionEventProperties(
         /** Durable consumer name for this service. */
         val contentConsumer: String = "beacon-content",
         /** Stream Beacon publishes its own distribution events to. */
-        val distributionStream: String = "DISTRIBUTION",
+        val distributionStream: String = "WEBMENTION",
         /** Subject filter the distribution stream captures. */
         val distributionSubject: String = "webmention.>",
     )

@@ -16,7 +16,7 @@ beacon:
       content-stream: ${BEACON_EVENTS_NATS_CONTENT_STREAM:CONTENT}
       content-subject: ${BEACON_EVENTS_NATS_CONTENT_SUBJECT:content.>}
       content-consumer: ${BEACON_EVENTS_NATS_CONTENT_CONSUMER:beacon-content}
-      distribution-stream: ${BEACON_EVENTS_NATS_DISTRIBUTION_STREAM:DISTRIBUTION}
+      distribution-stream: ${BEACON_EVENTS_NATS_DISTRIBUTION_STREAM:WEBMENTION}
       distribution-subject: ${BEACON_EVENTS_NATS_DISTRIBUTION_SUBJECT:webmention.>}
 
 # The content service (Bastion) read API, used to confirm a webmention target
