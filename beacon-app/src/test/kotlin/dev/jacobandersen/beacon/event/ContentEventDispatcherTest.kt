@@ -48,7 +48,7 @@ class ContentEventDispatcherTest {
 
         dispatcher.handle(createdJson(version = 1))
 
-        verify(webmentionService).reconcile(eq(url), any())
+        verify(webmentionService).reconcile(eq(url), any(), eq(true))
         verify(checkpointService).record(postId, 1)
     }
 
@@ -58,7 +58,7 @@ class ContentEventDispatcherTest {
 
         dispatcher.handle(createdJson(version = 3))
 
-        verify(webmentionService, never()).reconcile(any(), any())
+        verify(webmentionService, never()).reconcile(any(), any(), any())
         verify(checkpointService, never()).record(any(), any())
     }
 }

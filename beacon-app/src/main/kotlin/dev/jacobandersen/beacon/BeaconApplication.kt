@@ -1,6 +1,7 @@
 package dev.jacobandersen.beacon
 
 import dev.jacobandersen.beacon.config.BeaconContentProperties
+import dev.jacobandersen.beacon.config.ReconciliationProperties
 import dev.jacobandersen.beacon.config.WebmentionEventProperties
 import dev.jacobandersen.beacon.config.WebmentionProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -12,6 +13,7 @@ import org.springframework.boot.runApplication
     BeaconContentProperties::class,
     WebmentionProperties::class,
     WebmentionEventProperties::class,
+    ReconciliationProperties::class,
 )
 class BeaconApplication
 

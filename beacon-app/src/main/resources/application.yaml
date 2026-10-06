@@ -18,6 +18,11 @@ beacon:
       content-consumer: ${BEACON_EVENTS_NATS_CONTENT_CONSUMER:beacon-content}
       distribution-stream: ${BEACON_EVENTS_NATS_DISTRIBUTION_STREAM:WEBMENTION}
       distribution-subject: ${BEACON_EVENTS_NATS_DISTRIBUTION_SUBJECT:webmention.>}
+  reconciliation:
+    enabled: ${BEACON_RECONCILIATION_ENABLED:false}
+    interval-minutes: ${BEACON_RECONCILIATION_INTERVAL_MINUTES:60}
+    page-size: ${BEACON_RECONCILIATION_PAGE_SIZE:100}
+    max-pages: ${BEACON_RECONCILIATION_MAX_PAGES:50}
 
 # The content service (Bastion) read API, used to confirm a webmention target
 # is a currently-public post.

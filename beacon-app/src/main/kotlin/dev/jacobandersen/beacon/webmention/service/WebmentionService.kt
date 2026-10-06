@@ -36,10 +36,13 @@ class WebmentionService(
     /**
      * Reconcile the targets a post references with the notifications already
      * sent from [sourceUrl]. Safe to call repeatedly (create and update alike).
+     * [resendRetained] re-sends still-current delivered mentions (the update
+     * signal); reconciliation sweeps pass false so they only heal divergence.
      */
     fun reconcile(
         sourceUrl: String,
         obj: Mf2Object,
+        resendRetained: Boolean = true,
     ) {
         val current = targetUrlsOf(obj)
         val active = notificationService.activeNotificationsBySource(sourceUrl).associateBy { it.targetUrl }
@@ -50,13 +53,15 @@ class WebmentionService(
             enqueueSend(sourceUrl, target)
         }
 
-        val retained = current.intersect(active.keys)
-        retained.forEach { target ->
-            val existing = active.getValue(target)
-            if (existing.delivered) {
-                // Re-send still-current delivered mentions so targets notice edits.
-                notificationService.setActivePending(sourceUrl, target)
-                enqueueSend(sourceUrl, target, forceRediscovery = true)
+        if (resendRetained) {
+            val retained = current.intersect(active.keys)
+            retained.forEach { target ->
+                val existing = active.getValue(target)
+                if (existing.delivered) {
+                    // Re-send still-current delivered mentions so targets notice edits.
+                    notificationService.setActivePending(sourceUrl, target)
+                    enqueueSend(sourceUrl, target, forceRediscovery = true)
+                }
             }
         }
 
