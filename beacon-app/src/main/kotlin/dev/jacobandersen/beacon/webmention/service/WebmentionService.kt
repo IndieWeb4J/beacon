@@ -9,7 +9,7 @@ import dev.jacobandersen.beacon.util.WebmentionUtil
 import dev.jacobandersen.beacon.webmention.domain.WebmentionState
 import dev.jacobandersen.beacon.webmention.http.SendWebmentionResult
 import dev.jacobandersen.beacon.webmention.http.WebmentionHttpClient
-import dev.jacobandersen.mf24j.Mf2Object
+import dev.jacobandersen.microformats2.Mf2Object
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jobrunr.scheduling.JobScheduler
 import org.springframework.stereotype.Service

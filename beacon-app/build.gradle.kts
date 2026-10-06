@@ -15,8 +15,8 @@ java {
     }
 }
 
-extra["mf24jVersion"] = "0.1.0"
-extra["contentClientVersion"] = "1.3.33"
+extra["microformats2Version"] = "0.1.2"
+extra["contentClientVersion"] = "2.0.2"
 
 dependencies {
     implementation(project(":beacon-client"))
@@ -35,7 +35,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.23.2")
     implementation("org.nibor.autolink:autolink:0.12.0")
     implementation("tools.jackson.module:jackson-module-kotlin")
-    implementation("dev.jacobandersen:mf24j:${property("mf24jVersion")}")
+    implementation("dev.jacobandersen:microformats2:${property("microformats2Version")}")
     implementation("dev.jacobandersen:content-client:${property("contentClientVersion")}")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("io.micrometer:micrometer-registry-otlp")

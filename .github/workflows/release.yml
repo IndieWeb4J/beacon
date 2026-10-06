@@ -64,7 +64,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/jacobsandersen/beacon
+          images: ghcr.io/marchland/beacon
           tags: |
             type=semver,pattern={{version}}
 

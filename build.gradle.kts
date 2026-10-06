@@ -18,15 +18,15 @@ subprojects {
         mavenLocal()
         maven {
             name = "BastionGitHubPackages"
-            url = uri("https://maven.pkg.github.com/jacobsandersen/bastion")
+            url = uri("https://maven.pkg.github.com/marchland/bastion")
             credentials {
                 username = System.getenv("PACKAGES_USER") ?: System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
                 password = System.getenv("PACKAGES_TOKEN") ?: System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)
             }
         }
         maven {
-            name = "Mf24jGitHubPackages"
-            url = uri("https://maven.pkg.github.com/jacobandersen/mf24j")
+            name = "Microformats2GitHubPackages"
+            url = uri("https://maven.pkg.github.com/marchland/microformats2")
             credentials {
                 username = System.getenv("PACKAGES_USER") ?: System.getenv("GITHUB_ACTOR") ?: (project.findProperty("gpr.user") as String?)
                 password = System.getenv("PACKAGES_TOKEN") ?: System.getenv("GITHUB_TOKEN") ?: (project.findProperty("gpr.token") as String?)

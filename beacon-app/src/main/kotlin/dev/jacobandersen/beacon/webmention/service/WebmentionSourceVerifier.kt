@@ -2,8 +2,8 @@ package dev.jacobandersen.beacon.webmention.service
 
 import dev.jacobandersen.beacon.util.HttpUtil
 import dev.jacobandersen.beacon.webmention.http.SourceFetch
-import dev.jacobandersen.mf24j.Mf2ParseResult
-import dev.jacobandersen.mf24j.Mf2Parser
+import dev.jacobandersen.microformats2.Mf2ParseResult
+import dev.jacobandersen.microformats2.Mf2Parser
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 

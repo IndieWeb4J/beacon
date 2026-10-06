@@ -4,8 +4,8 @@ import dev.jacobandersen.beacon.config.BeaconContentProperties
 import dev.jacobandersen.beacon.config.WebmentionProperties
 import dev.jacobandersen.beacon.url.ContentUrlService
 import dev.jacobandersen.beacon.webmention.http.WebmentionHttpClient
-import dev.jacobandersen.mf24j.Mf2Object
-import dev.jacobandersen.mf24j.Mf2Value
+import dev.jacobandersen.microformats2.Mf2Object
+import dev.jacobandersen.microformats2.Mf2Value
 import org.jobrunr.scheduling.JobScheduler
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.given
