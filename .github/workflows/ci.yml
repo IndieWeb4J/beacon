@@ -14,6 +14,11 @@ jobs:
     name: Lint and test
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      # content-client is published from the private Bastion repo, so reads need a
+      # token with read:packages (the default GITHUB_TOKEN is scoped to this repo).
+      GITHUB_ACTOR: jacobsandersen
+      GITHUB_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -29,6 +34,3 @@ jobs:
 
       - name: Test
         run: ./gradlew test
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
