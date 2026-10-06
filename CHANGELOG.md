@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.1](https://github.com/Marchland/beacon/compare/v0.3.0...v0.3.1) (2026-10-06)
+
+
+### Miscellaneous Chores
+
+* move packages to Marchland and rename mf24j -&gt; microformats2 ([f8fc705](https://github.com/Marchland/beacon/commit/f8fc705217aab7a11234e5f33b9074b1c744922a))
+* move packages to Marchland and rename mf24j -&gt; microformats2 ([036c35d](https://github.com/Marchland/beacon/commit/036c35d1b53bbe3fd3567703d4b923ef64fccab0))
+
+
+### Build System
+
+* bump content-client to 2.0.2 ([b937349](https://github.com/Marchland/beacon/commit/b93734953bbf2c53845aa5516a190447756974db))
+* bump microformats2 to 0.1.2 ([d101c29](https://github.com/Marchland/beacon/commit/d101c29de731db35d9be1a5567fc4784dde5314e))
+
 ## [0.3.0](https://github.com/jacobsandersen/beacon/compare/v0.2.0...v0.3.0) (2026-10-06)
 
 
