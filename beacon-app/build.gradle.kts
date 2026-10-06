@@ -16,7 +16,7 @@ java {
 }
 
 extra["microformats2Version"] = "0.1.2"
-extra["contentClientVersion"] = "1.3.33"
+extra["contentClientVersion"] = "2.0.2"
 
 dependencies {
     implementation(project(":beacon-client"))
