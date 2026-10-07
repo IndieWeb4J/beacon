@@ -31,6 +31,14 @@ Multi-module, mirroring Sigil:
   the target is a currently-public post via `content-client` (`ContentReadClient`),
   stores a pending row and asynchronously verifies the source, emitting
   `webmention.verified`/`webmention.removed`.
+- **Receive errors**: 202 for accepted, 400 for a bad request, 429 (with `Retry-After`) when
+  the source is over its flood-control limit, and 500 via `WebmentionExceptionHandler` for
+  anything unexpected. A source that no longer links to the target, and a source that
+  returns 410 Gone, both delete the existing mention and emit `webmention.removed`
+  (Webmention 3.2.4); a 404 is treated as unreachable, not gone.
+- **Discovery SSRF**: `WebmentionHttpClient.discoverWebmentionEndpoint` follows redirects
+  manually, validating every hop with `SourceHostValidator` and capping the body, like the
+  source fetcher.
 - **No cross-service FK**: posts are referenced by the content service's post id.
 
 ## Build and test

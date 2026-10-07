@@ -47,8 +47,11 @@ class WebmentionReceiverService(
             }
 
             SourceVerdict.NO_LINK -> {
-                logger.warn { "Source $sourceUrl does not link to target $targetUrl" }
-                receivedWebmentionService.markRejected(sourceUrl, postId, "source does not link to the target")
+                // The source no longer links to the target, so the existing
+                // mention must be deleted (Webmention 3.2.4), not just rejected.
+                logger.info { "Source $sourceUrl no longer links to target $targetUrl, marking webmention deleted" }
+                val record = receivedWebmentionService.markDeleted(sourceUrl, postId)
+                eventPublisher.publish(removedEvent(record))
             }
 
             SourceVerdict.UNREACHABLE -> {

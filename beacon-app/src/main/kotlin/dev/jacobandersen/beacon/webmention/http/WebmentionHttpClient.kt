@@ -16,6 +16,7 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
+import java.net.URI
 import java.net.http.HttpClient
 import java.time.Duration
 
@@ -42,6 +43,7 @@ data class EndpointDiscovery(
 @Service
 class WebmentionHttpClient(
     private val config: WebmentionProperties,
+    private val hostValidator: SourceHostValidator,
 ) {
     private val client: RestClient =
         RestClient
@@ -107,23 +109,55 @@ class WebmentionHttpClient(
 
     internal fun discoverWebmentionEndpoint(url: String): EndpointDiscovery {
         logger.info { "Discovering webmention endpoint for $url" }
-        return runCatching {
-            val res =
+        return runCatching { discoverFollowingRedirects(url) }
+            .getOrElse {
+                logger.warn { "Webmention endpoint discovery failed for $url: ${it.message}" }
+                EndpointDiscovery(null, null, null)
+            }
+    }
+
+    /**
+     * Follows redirects manually so the host of every hop is validated by the
+     * [SourceHostValidator]; blindly following redirects would let a public URL
+     * redirect discovery to an internal address (SSRF). The document body is
+     * size-capped like the source fetcher.
+     */
+    private fun discoverFollowingRedirects(startUrl: String): EndpointDiscovery {
+        var current = startUrl
+        repeat(MAX_REDIRECTS) {
+            if (hostValidator.isBlocked(current)) {
+                logger.warn { "Refusing to discover a webmention endpoint at a blocked host: $current" }
+                return EndpointDiscovery(null, null, null)
+            }
+
+            val response =
                 Jsoup
-                    .connect(url)
+                    .connect(current)
                     .userAgent(USER_AGENT)
-                    .followRedirects(true)
+                    .header(HttpHeaders.ACCEPT, DISCOVERY_ACCEPT)
+                    .followRedirects(false)
+                    .ignoreHttpErrors(true)
+                    .maxBodySize(MAX_BODY_SIZE)
                     .timeout((config.readTimeoutSeconds * 1000).toInt())
                     .execute()
 
-            val cacheControl = firstHeader(res, "Cache-Control")
-            val expires = firstHeader(res, "Expires")
+            val status = response.statusCode()
+            if (status in REDIRECT_STATUSES) {
+                val location = response.header("Location")?.trim().orEmpty()
+                if (location.isEmpty()) return EndpointDiscovery(null, null, null)
+                current =
+                    runCatching { URI(current).resolve(location).toString() }.getOrNull()
+                        ?: return EndpointDiscovery(null, null, null)
+                return@repeat
+            }
 
-            val baseUrl = res.url().toExternalForm()
+            val cacheControl = firstHeader(response, "Cache-Control")
+            val expires = firstHeader(response, "Expires")
+            val baseUrl = response.url().toExternalForm()
 
             val linkEndpoint =
                 WebmentionUtil
-                    .findEndpointInLinkHeaders(res.headers(HttpHeaders.LINK))
+                    .findEndpointInLinkHeaders(response.headers(HttpHeaders.LINK))
                     ?.let { WebmentionUtil.resolveEndpoint(it, baseUrl) }
 
             if (linkEndpoint != null) {
@@ -131,14 +165,13 @@ class WebmentionHttpClient(
                 return EndpointDiscovery(linkEndpoint, cacheControl, expires)
             }
 
-            if (!HttpUtil.isHtmlContentType(res.contentType())) {
+            if (!HttpUtil.isHtmlContentType(response.contentType())) {
                 logger.info { "No valid HTTP Link found, and document is not HTML, cannot resolve webmention endpoint" }
                 return EndpointDiscovery(null, cacheControl, expires)
             }
 
-            logger.info { "No HTTP Link found, checking HTML document..." }
             val htmlEndpoint =
-                res
+                response
                     .parse()
                     .select("link[href], a[href]")
                     .firstOrNull { element ->
@@ -150,12 +183,10 @@ class WebmentionHttpClient(
                 return EndpointDiscovery(htmlEndpoint, cacheControl, expires)
             }
 
-            logger.info { "Could not resolve webmention endpoint for $url" }
-            EndpointDiscovery(null, cacheControl, expires)
-        }.getOrElse {
-            logger.warn { "Webmention endpoint discovery failed for $url: ${it.message}" }
-            EndpointDiscovery(null, null, null)
+            logger.info { "Could not resolve webmention endpoint for $startUrl" }
+            return EndpointDiscovery(null, cacheControl, expires)
         }
+        return EndpointDiscovery(null, null, null)
     }
 
     private fun firstHeader(
@@ -166,5 +197,9 @@ class WebmentionHttpClient(
     companion object {
         const val USER_AGENT = "BeaconWebmentionHttpClient/0.0.1"
         const val MAX_ERROR_BODY_LENGTH = 2000
+        const val MAX_REDIRECTS = 10
+        const val MAX_BODY_SIZE = 1_000_000
+        const val DISCOVERY_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        private val REDIRECT_STATUSES = setOf(301, 302, 303, 307, 308)
     }
 }

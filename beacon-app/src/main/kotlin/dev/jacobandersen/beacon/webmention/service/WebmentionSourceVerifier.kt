@@ -24,8 +24,9 @@ internal data class SourceVerification(
 /**
  * Verifies that a fetched source document actually mentions the webmention
  * target, following section 3.2.2 of the Webmention specification: an exact
- * match of the target URL is required per media type, a 410 (or 404) means the
- * source is gone, and any other failure is unreachable.
+ * match of the target URL is required per media type, a 410 Gone means the
+ * source is gone (and the mention is deleted, 3.2.4), and any other failure is
+ * unreachable.
  */
 internal object WebmentionSourceVerifier {
     private val URL_ATTRIBUTES: List<Pair<String, String>> =
@@ -48,7 +49,7 @@ internal object WebmentionSourceVerifier {
         parser: Mf2Parser,
     ): SourceVerification {
         when {
-            fetch.statusCode == 410 || fetch.statusCode == 404 -> {
+            fetch.statusCode == 410 -> {
                 return SourceVerification(SourceVerdict.GONE)
             }
 

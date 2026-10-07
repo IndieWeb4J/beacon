@@ -2,12 +2,14 @@ package dev.jacobandersen.beacon.webmention.controller
 
 import dev.jacobandersen.beacon.url.ContentUrlService
 import dev.jacobandersen.beacon.webmention.http.SourceHostValidator
+import dev.jacobandersen.beacon.webmention.service.SubmissionDecision
 import dev.jacobandersen.beacon.webmention.service.WebmentionReceiverService
 import dev.jacobandersen.beacon.webmention.service.WebmentionSubmissionLimiter
 import dev.jacobandersen.content.client.ContentReadClient
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.jobrunr.scheduling.JobScheduler
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartHttpServletRequest
 import java.net.URI
+import java.time.Duration
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -25,6 +28,9 @@ private val logger = KotlinLogging.logger {}
  * specification). Performs synchronous request verification and returns 202,
  * deferring source verification to an asynchronous job. The target must be a
  * currently-public post, confirmed through the content service's read API.
+ *
+ * Rejections are 400 (bad request), 429 (flood control, with `Retry-After`), or
+ * 415 (wrong content type); the response body is JSON.
  */
 @RestController
 @RequestMapping("/webmention")
@@ -53,8 +59,9 @@ class WebmentionController(
         if (sourceUrl == targetUrl) return invalidRequest("The source and target URLs must be different")
         if (contentUrlService.isOwnContentUrl(sourceUrl)) return invalidRequest("Self webmentions are not accepted")
         if (hostValidator.isBlocked(sourceUrl)) return invalidRequest("The source URL host is not reachable")
-        if (!submissionLimiter.allow(sourceUrl, targetUrl)) {
-            return invalidRequest("Too many recent webmentions from this source")
+        when (val decision = submissionLimiter.allow(sourceUrl, targetUrl)) {
+            is SubmissionDecision.Allowed -> Unit
+            is SubmissionDecision.RateLimited -> return tooManyRequests(decision.retryAfter)
         }
 
         val slug = contentUrlService.extractPostSlug(targetUrl)
@@ -81,13 +88,31 @@ class WebmentionController(
             uri.isAbsolute && (uri.scheme == "http" || uri.scheme == "https") && uri.host != null
         }.getOrDefault(false)
 
-    private fun invalidRequest(description: String): ResponseEntity<*> =
+    private fun invalidRequest(description: String): ResponseEntity<*> = jsonError(HttpStatus.BAD_REQUEST, "invalid_request", description)
+
+    private fun tooManyRequests(retryAfter: Duration): ResponseEntity<*> =
         ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .header(HttpHeaders.RETRY_AFTER, retryAfter.seconds.coerceAtLeast(1L).toString())
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 mapOf(
-                    "error" to "invalid_request",
+                    "error" to "rate_limited",
+                    "error_description" to "Too many recent webmentions from this source",
+                ),
+            )
+
+    private fun jsonError(
+        status: HttpStatus,
+        error: String,
+        description: String,
+    ): ResponseEntity<*> =
+        ResponseEntity
+            .status(status)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                mapOf(
+                    "error" to error,
                     "error_description" to description,
                 ),
             )
