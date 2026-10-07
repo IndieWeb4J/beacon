@@ -1,11 +1,17 @@
 package dev.jacobandersen.beacon.webmention.service
 
-import dev.jacobandersen.beacon.webmention.service.WebmentionSubmissionLimiter.Companion.MAX_SUBMISSIONS_PER_SOURCE
-import dev.jacobandersen.beacon.webmention.service.WebmentionSubmissionLimiter.Companion.PAIR_COOLDOWN
-import dev.jacobandersen.beacon.webmention.service.WebmentionSubmissionLimiter.Companion.SOURCE_WINDOW
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
+
+/** The outcome of a flood-control check: allowed, or rate limited for a period. */
+sealed interface SubmissionDecision {
+    data object Allowed : SubmissionDecision
+
+    data class RateLimited(
+        val retryAfter: Duration,
+    ) : SubmissionDecision
+}
 
 /**
  * Guards the webmention receiver against submission flooding. The endpoint is
@@ -15,7 +21,8 @@ import java.time.Instant
  *
  * Two limits are enforced: a single (source, target) pair is only accepted
  * once per [PAIR_COOLDOWN], and a single source URL may submit at most
- * [MAX_SUBMISSIONS_PER_SOURCE] times per [SOURCE_WINDOW].
+ * [MAX_SUBMISSIONS_PER_SOURCE] times per [SOURCE_WINDOW]. A rejection reports
+ * the remaining wait so the receiver can answer 429 with `Retry-After`.
  */
 @Component
 class WebmentionSubmissionLimiter {
@@ -32,24 +39,28 @@ class WebmentionSubmissionLimiter {
         sourceUrl: String,
         targetUrl: String,
         now: Instant = Instant.now(),
-    ): Boolean {
+    ): SubmissionDecision {
         synchronized(lock) {
             evictExpired(now)
 
             val pairKey = "$sourceUrl\u0000$targetUrl"
             val pairLastSeen = pairCooldowns[pairKey]
-            if (pairLastSeen != null && pairLastSeen.isAfter(now)) return false
+            if (pairLastSeen != null && pairLastSeen.isAfter(now)) {
+                return SubmissionDecision.RateLimited(Duration.between(now, pairLastSeen))
+            }
 
             val window = sourceSubmissions[sourceUrl]
             if (window != null && window.expiresAt.isAfter(now)) {
-                if (window.count >= MAX_SUBMISSIONS_PER_SOURCE) return false
+                if (window.count >= MAX_SUBMISSIONS_PER_SOURCE) {
+                    return SubmissionDecision.RateLimited(Duration.between(now, window.expiresAt))
+                }
                 sourceSubmissions[sourceUrl] = window.copy(count = window.count + 1)
             } else {
                 sourceSubmissions[sourceUrl] = SourceWindow(count = 1, expiresAt = now.plus(SOURCE_WINDOW))
             }
 
             pairCooldowns[pairKey] = now.plus(PAIR_COOLDOWN)
-            return true
+            return SubmissionDecision.Allowed
         }
     }
 

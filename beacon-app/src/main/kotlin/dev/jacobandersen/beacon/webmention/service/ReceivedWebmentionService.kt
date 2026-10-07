@@ -2,11 +2,7 @@ package dev.jacobandersen.beacon.webmention.service
 
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmention
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionAnalysis
-import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.DELETED
-import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.ERROR
-import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.PENDING
-import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.REJECTED
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.VERIFIED
 import dev.jacobandersen.beacon.webmention.entity.ReceivedWebmentionEntity
 import dev.jacobandersen.beacon.webmention.repository.ReceivedWebmentionRepository
@@ -15,65 +11,27 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * Stores received webmentions. Only verified mentions are persisted: a mention
+ * that fails verification (unreachable source, or a source that never linked)
+ * is not stored, and a previously verified mention that has gone or stopped
+ * linking is marked deleted after its `webmention.removed` event is emitted.
+ */
 @Service
 class ReceivedWebmentionService(
     private val repository: ReceivedWebmentionRepository,
 ) {
-    /**
-     * Ensure a received webmention exists in [PENDING] state for the given
-     * source and post, so verification can be (re)run against it. A webmention
-     * that was previously deleted, rejected or errored is reopened.
-     */
-    @Transactional
-    fun ensurePending(
-        sourceUrl: String,
-        targetUrl: String,
-        postId: UUID,
-    ): ReceivedWebmention {
-        val now = Instant.now()
-        val existing = repository.findBySourceUrlAndPostId(sourceUrl, postId)
-        if (existing == null) {
-            val created =
-                ReceivedWebmentionEntity(
-                    postId = postId,
-                    sourceUrl = sourceUrl,
-                    targetUrl = targetUrl,
-                    state = PENDING,
-                    interaction = null,
-                    authorName = null,
-                    authorUrl = null,
-                    authorPhoto = null,
-                    contentText = null,
-                    contentHtml = null,
-                    rawMf2 = null,
-                    lastError = null,
-                    firstSeenAt = now,
-                    verifiedAt = null,
-                    updatedAtUtc = now,
-                )
-            return repository.save(created).toDomain()
-        }
-
-        if (existing.state != PENDING) {
-            existing.state = PENDING
-            existing.lastError = null
-            existing.verifiedAt = null
-            existing.updatedAtUtc = now
-            return repository.save(existing).toDomain()
-        }
-        return existing.toDomain()
-    }
-
+    /** Creates or updates the verified mention for [sourceUrl] on [postId]. */
     @Transactional
     fun markVerified(
         sourceUrl: String,
+        targetUrl: String,
         postId: UUID,
         analysis: ReceivedWebmentionAnalysis,
     ): ReceivedWebmention {
         val now = Instant.now()
-        val entity =
-            repository.findBySourceUrlAndPostId(sourceUrl, postId)
-                ?: throw IllegalStateException("No received webmention for $sourceUrl on post $postId")
+        val entity = repository.findBySourceUrlAndPostId(sourceUrl, postId) ?: newEntity(sourceUrl, targetUrl, postId, now)
+        entity.targetUrl = targetUrl
         entity.state = VERIFIED
         entity.interaction = analysis.interaction
         entity.authorName = analysis.authorName
@@ -88,25 +46,29 @@ class ReceivedWebmentionService(
         return repository.save(entity).toDomain()
     }
 
-    @Transactional
-    fun markRejected(
-        sourceUrl: String,
-        postId: UUID,
-        reason: String,
-    ): ReceivedWebmention = setTerminal(sourceUrl, postId, REJECTED, reason)
-
+    /** Marks an existing verified mention deleted (a retraction). */
     @Transactional
     fun markDeleted(
         sourceUrl: String,
         postId: UUID,
-    ): ReceivedWebmention = setTerminal(sourceUrl, postId, DELETED, null)
-
-    @Transactional
-    fun markError(
-        sourceUrl: String,
-        postId: UUID,
-        reason: String,
-    ): ReceivedWebmention = setTerminal(sourceUrl, postId, ERROR, reason)
+    ): ReceivedWebmention {
+        val now = Instant.now()
+        val entity =
+            repository.findBySourceUrlAndPostId(sourceUrl, postId)
+                ?: throw IllegalStateException("No received webmention for $sourceUrl on post $postId")
+        entity.state = DELETED
+        entity.lastError = null
+        entity.verifiedAt = null
+        entity.interaction = null
+        entity.authorName = null
+        entity.authorUrl = null
+        entity.authorPhoto = null
+        entity.contentText = null
+        entity.contentHtml = null
+        entity.rawMf2 = null
+        entity.updatedAtUtc = now
+        return repository.save(entity).toDomain()
+    }
 
     @Transactional(readOnly = true)
     fun notification(
@@ -120,30 +82,25 @@ class ReceivedWebmentionService(
     @Transactional(readOnly = true)
     fun verifiedByPost(postId: UUID): List<ReceivedWebmention> = repository.findByPostIdAndState(postId, VERIFIED).map { it.toDomain() }
 
-    private fun setTerminal(
+    private fun newEntity(
         sourceUrl: String,
+        targetUrl: String,
         postId: UUID,
-        state: ReceivedWebmentionState,
-        reason: String?,
-    ): ReceivedWebmention {
-        val now = Instant.now()
-        val entity =
-            repository.findBySourceUrlAndPostId(sourceUrl, postId)
-                ?: throw IllegalStateException("No received webmention for $sourceUrl on post $postId")
-
-        entity.state = state
-        entity.lastError = reason
-        entity.verifiedAt = null
-        if (state == DELETED) {
-            entity.interaction = null
-            entity.authorName = null
-            entity.authorUrl = null
-            entity.authorPhoto = null
-            entity.contentText = null
-            entity.contentHtml = null
-            entity.rawMf2 = null
-        }
-        entity.updatedAtUtc = now
-        return repository.save(entity).toDomain()
-    }
+        now: Instant,
+    ): ReceivedWebmentionEntity =
+        ReceivedWebmentionEntity(
+            postId = postId,
+            sourceUrl = sourceUrl,
+            targetUrl = targetUrl,
+            state = VERIFIED,
+            interaction = null,
+            authorName = null,
+            authorUrl = null,
+            authorPhoto = null,
+            rawMf2 = null,
+            lastError = null,
+            firstSeenAt = now,
+            verifiedAt = null,
+            updatedAtUtc = now,
+        )
 }

@@ -6,6 +6,7 @@ import dev.jacobandersen.beacon.event.WebmentionEventPublisher
 import dev.jacobandersen.beacon.event.WebmentionEventType
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmention
 import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionAnalysis
+import dev.jacobandersen.beacon.webmention.domain.ReceivedWebmentionState.VERIFIED
 import dev.jacobandersen.beacon.webmention.http.WebmentionSourceFetcher
 import dev.jacobandersen.microformats2.Mf2Parser
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,11 +16,13 @@ import java.util.UUID
 private val logger = KotlinLogging.logger {}
 
 /**
- * Asynchronously verifies received webmentions: fetches the source document,
- * confirms it mentions the target (section 3.2.2) and records the outcome
- * (section 3.2.4), extracting interaction type, author and content data when the
- * source is valid. Emits `webmention.verified`/`webmention.removed` so Bastion
- * can project the read model.
+ * Asynchronously verifies received webmentions (Webmention 3.2.2): fetches the
+ * source document, confirms it mentions the target and records the outcome.
+ *
+ * Only successful verifications are stored. A source that is unreachable, or
+ * that never linked to the target, is not persisted; a previously verified
+ * mention that has gone (410) or stopped linking is retracted (`webmention.removed`).
+ * Verification is one-shot per accepted request: there are no out-of-band retries.
  */
 @Service
 class WebmentionReceiverService(
@@ -34,35 +37,36 @@ class WebmentionReceiverService(
         postId: UUID,
     ) {
         logger.info { "Verifying received webmention from $sourceUrl for $targetUrl" }
-        receivedWebmentionService.ensurePending(sourceUrl, targetUrl, postId)
 
+        val existing = receivedWebmentionService.notification(sourceUrl, postId)
         val fetch = sourceFetcher.fetch(sourceUrl)
         val verification = WebmentionSourceVerifier.verify(fetch, targetUrl, parser)
 
         when (verification.verdict) {
-            SourceVerdict.GONE -> {
-                logger.info { "Source $sourceUrl is gone, marking webmention deleted" }
-                val record = receivedWebmentionService.markDeleted(sourceUrl, postId)
-                eventPublisher.publish(removedEvent(record))
-            }
-
-            SourceVerdict.NO_LINK -> {
-                logger.warn { "Source $sourceUrl does not link to target $targetUrl" }
-                receivedWebmentionService.markRejected(sourceUrl, postId, "source does not link to the target")
-            }
-
-            SourceVerdict.UNREACHABLE -> {
-                logger.warn { "Unable to verify source $sourceUrl: ${verification.reason}" }
-                receivedWebmentionService.markError(sourceUrl, postId, verification.reason ?: "unable to fetch source")
-            }
-
             SourceVerdict.VERIFIED -> {
                 val analysis =
                     verification.parse?.let(ReceivedWebmentionAnalyzer::analyze)
                         ?: ReceivedWebmentionAnalysis(interaction = MENTION, primary = null)
                 logger.info { "Verified webmention from $sourceUrl as ${analysis.interaction}" }
-                val record = receivedWebmentionService.markVerified(sourceUrl, postId, analysis)
+                val record = receivedWebmentionService.markVerified(sourceUrl, targetUrl, postId, analysis)
                 eventPublisher.publish(verifiedEvent(record))
+            }
+
+            SourceVerdict.GONE, SourceVerdict.NO_LINK -> {
+                if (existing?.state == VERIFIED) {
+                    logger.info { "Source $sourceUrl no longer supports its webmention to $targetUrl, retracting" }
+                    val record = receivedWebmentionService.markDeleted(sourceUrl, postId)
+                    eventPublisher.publish(removedEvent(record))
+                } else {
+                    logger.info {
+                        "Ignoring unverifiable webmention from $sourceUrl to $targetUrl (${verification.verdict}); nothing stored"
+                    }
+                }
+            }
+
+            SourceVerdict.UNREACHABLE -> {
+                // Transient: store nothing and leave any existing verified mention untouched.
+                logger.warn { "Unable to verify source $sourceUrl: ${verification.reason}" }
             }
         }
     }

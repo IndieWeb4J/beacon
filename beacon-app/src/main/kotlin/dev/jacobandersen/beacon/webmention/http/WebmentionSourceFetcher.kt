@@ -4,6 +4,7 @@ import dev.jacobandersen.beacon.config.WebmentionProperties
 import dev.jacobandersen.beacon.util.HttpUtil
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jsoup.Jsoup
+import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.net.URI
@@ -71,6 +72,7 @@ class WebmentionSourceFetcher(
                 Jsoup
                     .connect(current)
                     .userAgent(USER_AGENT)
+                    .header(HttpHeaders.ACCEPT, ACCEPT)
                     .followRedirects(false)
                     .ignoreHttpErrors(true)
                     .maxBodySize(MAX_BODY_SIZE)
@@ -103,6 +105,7 @@ class WebmentionSourceFetcher(
         const val USER_AGENT = "BeaconWebmentionReceiver/0.0.1"
         const val MAX_BODY_SIZE = 1_000_000
         const val MAX_REDIRECTS = 10
+        const val ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         private val REDIRECT_STATUSES = setOf(301, 302, 303, 307, 308)
     }
 }
