@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2](https://github.com/Marchland/beacon/compare/v0.3.1...v0.3.2) (2026-10-07)
+
+
+### Bug Fixes
+
+* **webmention:** delete on no-link, 429 flood control, safe discovery redirects ([5c760e4](https://github.com/Marchland/beacon/commit/5c760e4395b8e08b21f7154807fcf1ab90fef01a))
+* **webmention:** delete on no-link, 429 flood control, safe discovery redirects ([6c8b829](https://github.com/Marchland/beacon/commit/6c8b829ceee34155e277dc9efa1fdc4feb3bdc0f))
+* **webmention:** do not store unverifiable receives ([0b155ad](https://github.com/Marchland/beacon/commit/0b155ad6a4b7f14594bedc241aab2ccf5dd0887c))
+
 ## [0.3.1](https://github.com/Marchland/beacon/compare/v0.3.0...v0.3.1) (2026-10-06)
 
 
